@@ -37,6 +37,8 @@ export interface GrantRecord {
   fullGrantAmountDisbursed: number | null;
   fullGrantAmountDisbursedRaw: string;
   purpose: string;
+  latitude: number | null;
+  longitude: number | null;
   importantFields: Record<ImportantField, string>;
   otherFields: Array<{ key: string; value: string }>;
   raw: RawGrantRecord;

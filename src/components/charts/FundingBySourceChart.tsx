@@ -13,7 +13,7 @@ const FundingBySourceChart = ({ data }: FundingBySourceChartProps) => {
         <div>
           <h2 className="text-lg font-semibold text-white">Top source files by approved funding</h2>
           <p className="text-sm text-white/60">
-            Highlights the highest funded source dossiers and how many grant instances they cover.
+            Highlights the highest funded cities and how many grant instances they cover.
           </p>
         </div>
       </header>

@@ -11,6 +11,7 @@ An interactive, responsive React dashboard that illuminates the Qatar Foundation
   - Year-over-year area chart comparing approved vs. fully disbursed amounts.
   - Leaderboard for top purposes by frequency and dollars.
   - Horizontal bar chart spotlighting the highest funded source files.
+- **Geospatial insight** – Mapbox-powered grants map that scales marker size by approved funding and surfaces location-level details.
 - **Comprehensive table** – Sticky, mobile-friendly table for all priority columns plus an expandable “Other fields” drawer that exposes every remaining column/value pair for a record.
 - **Thoughtful styling** – Tailwind-powered dark theme with brand-accent gradient, accessible contrast, blur effects, and responsive layout down to small screens.
 
@@ -71,11 +72,26 @@ The live site will be available at: https://fddvisuals.github.io/qfi-contracts-u
 - The `gh-pages` package handles the deployment process automatically
 - After the first deployment, subsequent updates only require running `npm run deploy`
 
+### Map configuration
+
+The geographic visualization relies on Mapbox. A default public token is embedded for convenience, but you should create a personal token and add it to your environment for production use.
+
+1. Create a `.env.local` file in the project root (ignored by git) and add:
+
+  ```bash
+  VITE_MAPBOX_TOKEN=your-mapbox-token
+  ```
+
+2. Restart the dev server so Vite can pick up the new environment variable.
+
+3. Ensure each CSV row includes `Latitude` and `Longitude` columns (decimal degrees). Records without coordinates are excluded from the map but still appear elsewhere in the dashboard.
+
 ## 📁 Data updates
 
 - Replace `public/data/Combined_National_QFI_Data.csv` with a file containing the same header structure (order doesn’t matter).
 - On save, refresh the browser or click **Refresh data** in the UI to reparse the CSV.
 - Important columns (`Source_File`, `School`, `Grant ID`, etc.) are surfaced directly; any additional columns flow into the per-record “Other fields” accordion automatically.
+- Populate `Latitude` and `Longitude` columns (decimal degrees) to keep a record visible on the map; rows without coordinates continue to appear in other visualizations.
 
 ## 🧭 Project structure
 

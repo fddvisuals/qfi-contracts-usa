@@ -105,7 +105,7 @@ const FiltersPanel = ({
           {({ open }: { open: boolean }) => (
             <div className="rounded-2xl border border-white/5 bg-black/20">
               <Disclosure.Button className="flex w-full items-center justify-between gap-2 px-4 py-3 text-left text-sm font-semibold text-white">
-                <span>Filter by source file</span>
+                <span>Filter by city</span>
                 <ChevronUpDownIcon
                   className={`h-5 w-5 transition-transform ${open ? 'rotate-180 text-brand-200' : 'text-white/60'}`}
                 />

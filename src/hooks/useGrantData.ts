@@ -3,7 +3,8 @@ import Papa, { ParseError, ParseResult } from 'papaparse';
 import { Aggregations, GrantMetrics, GrantRecord, IMPORTANT_FIELDS, ImportantField, RawGrantRecord } from '../types';
 import { extractYear, parseCurrency, safeString } from '../utils/format';
 
-const DATA_URL = './data/Combined_National_QFI_Data.csv';
+const DATA_URL =
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vSNjJoTuW3uSqBFYHZ2KpKXduY4NDE7f6E2ZG9Ix-0yHV49P4S-3WEvJRABVVw_og1CZP3xxkjZkyDD/pub?gid=722552634&single=true&output=csv";
 
 interface UseGrantDataResult {
   loading: boolean;
@@ -15,6 +16,12 @@ interface UseGrantDataResult {
 }
 
 const importantFieldLookup = new Set<ImportantField>(IMPORTANT_FIELDS);
+
+const parseCoordinate = (value?: string): number | null => {
+  if (!value) return null;
+  const parsed = Number.parseFloat(value);
+  return Number.isFinite(parsed) ? parsed : null;
+};
 
 const normalizeRecord = (raw: RawGrantRecord, index: number): GrantRecord => {
   const importantFieldsEntries = IMPORTANT_FIELDS.map((field) => [field, safeString(raw[field])]);
@@ -30,6 +37,8 @@ const normalizeRecord = (raw: RawGrantRecord, index: number): GrantRecord => {
   const yearFromField = safeString(importantFields['Year']);
   const yearNumeric = yearFromField ? Number.parseInt(yearFromField, 10) : NaN;
   const yearValue = Number.isNaN(yearNumeric) ? extractYear(importantFields['Date of Letter '] || importantFields['Date range of grant']) : yearNumeric;
+  const latitude = parseCoordinate(raw['Latitude']);
+  const longitude = parseCoordinate(raw['Longitude']);
 
   return {
     id: `${importantFields['Grant ID'] || 'record'}-${index}`,
@@ -49,6 +58,8 @@ const normalizeRecord = (raw: RawGrantRecord, index: number): GrantRecord => {
     fullGrantAmountDisbursed: fullDisbursed,
     fullGrantAmountDisbursedRaw: importantFields['Full grant amount disbursed'],
     purpose: importantFields['Purpose of Grant'] || 'Unspecified',
+    latitude,
+    longitude,
     importantFields,
     otherFields,
     raw
@@ -95,33 +106,38 @@ export const computeAggregations = (records: GrantRecord[]): Aggregations => {
     if (!byYear.has(yearKey)) {
       byYear.set(yearKey, { amount: 0 });
     }
-    if (!bySource.has(sourceKey)) {
+    const includeSource = sourceKey !== 'Unspecified';
+    const includePurpose = purposeKey !== 'Unspecified';
+    const includeSchool = schoolKey !== 'Unspecified';
+
+    if (includeSource && !bySource.has(sourceKey)) {
       bySource.set(sourceKey, { amount: 0, grants: 0 });
     }
-    if (!byPurpose.has(purposeKey)) {
+    if (includePurpose && !byPurpose.has(purposeKey)) {
       byPurpose.set(purposeKey, { count: 0, amount: 0 });
     }
-    if (!bySchool.has(schoolKey)) {
+    if (includeSchool && !bySchool.has(schoolKey)) {
       bySchool.set(schoolKey, { count: 0, amount: 0 });
     }
 
     const yearData = byYear.get(yearKey)!;
-    const sourceData = bySource.get(sourceKey)!;
-    const purposeData = byPurpose.get(purposeKey)!;
-    const schoolData = bySchool.get(schoolKey)!;
+    const sourceData = includeSource ? bySource.get(sourceKey)! : null;
+    const purposeData = includePurpose ? byPurpose.get(purposeKey)! : null;
+    const schoolData = includeSchool ? bySchool.get(schoolKey)! : null;
 
     if (record.amount) {
       yearData.amount += record.amount;
-      sourceData.amount += record.amount;
-      purposeData.amount += record.amount;
-      schoolData.amount += record.amount;
+      if (sourceData) sourceData.amount += record.amount;
+      if (purposeData) purposeData.amount += record.amount;
+      if (schoolData) schoolData.amount += record.amount;
     }
-    sourceData.grants += 1;
-    purposeData.count += 1;
-    schoolData.count += 1;
+    if (sourceData) sourceData.grants += 1;
+    if (purposeData) purposeData.count += 1;
+    if (schoolData) schoolData.count += 1;
   });
 
   const amountByYear = Array.from(byYear.entries())
+    .filter(([year]) => year !== 'Unspecified')
     .map(([year, { amount }]) => ({ year, totalAmount: amount }))
     .sort((a, b) => {
       const aYear = Number.parseInt(a.year, 10);

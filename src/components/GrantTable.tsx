@@ -13,14 +13,11 @@ interface ColumnConfig {
     GrantRecord,
     | 'sourceFile'
     | 'school'
-    | 'grantId'
     | 'title'
     | 'yearLabel'
     | 'dateOfLetter'
-    | 'dateOfApplication'
     | 'dateRange'
     | 'amount'
-    | 'amountRequested'
     | 'purpose'
   >;
   label: string;
@@ -40,11 +37,6 @@ const columns: ColumnConfig[] = [
     render: (record: GrantRecord) => record.school || '—'
   },
   {
-    key: 'grantId',
-    label: 'Grant ID',
-    render: (record: GrantRecord) => record.grantId || '—'
-  },
-  {
     key: 'title',
     label: 'Title of project',
     render: (record: GrantRecord) => record.title || '—'
@@ -61,11 +53,6 @@ const columns: ColumnConfig[] = [
     render: (record: GrantRecord) => formatDate(record.dateOfLetter)
   },
   {
-    key: 'dateOfApplication',
-    label: 'Date of application',
-    render: (record: GrantRecord) => formatDate(record.dateOfApplication)
-  },
-  {
     key: 'dateRange',
     label: 'Grant period',
     render: (record: GrantRecord) => formatDate(record.dateRange)
@@ -74,12 +61,6 @@ const columns: ColumnConfig[] = [
     key: 'amount',
     label: 'Amount approved',
     render: (record: GrantRecord) => formatCurrency(record.amount),
-    className: 'text-right'
-  },
-  {
-    key: 'amountRequested',
-    label: 'Amount requested',
-    render: (record: GrantRecord) => formatCurrency(record.amountRequested),
     className: 'text-right'
   },
   {
@@ -122,8 +103,8 @@ const GrantTable = ({ records, loading }: GrantTableProps) => {
         </div>
       </header>
       <div className="mt-6 rounded-2xl border border-white/10">
-        <div className="max-h-[32rem] overflow-auto">
-          <table className="min-w-full table-fixed border-separate border-spacing-y-2 text-left text-sm text-white/80">
+        <div className="max-h-[32rem] overflow-y-auto">
+          <table className="min-w-full table-auto border-separate border-spacing-y-2 text-left text-sm text-white/80">
           <thead>
             <tr className="text-xs uppercase tracking-wider text-white/40">
               {columns.map((column) => (
@@ -137,7 +118,30 @@ const GrantTable = ({ records, loading }: GrantTableProps) => {
           <tbody>
             {sortedRecords.map((record) => {
               const isExpanded = expandedRowId === record.id;
-              const otherCount = record.otherFields.length;
+              const detailFields: Array<{ key: string; value: string }> = [];
+
+              const grantIdValue = safeString(record.grantId);
+              if (grantIdValue) {
+                detailFields.push({ key: 'Grant ID', value: grantIdValue });
+              }
+
+              const formattedDateOfApplication = formatDate(record.dateOfApplication);
+              if (formattedDateOfApplication !== '—') {
+                detailFields.push({ key: 'Date of application', value: formattedDateOfApplication });
+              }
+
+              const formattedAmountRequested = formatCurrency(record.amountRequested);
+              if (formattedAmountRequested !== '—') {
+                detailFields.push({ key: 'Amount requested', value: formattedAmountRequested });
+              }
+
+              record.otherFields.forEach((field) => {
+                const value = safeString(field.value);
+                if (!value) return;
+                detailFields.push({ key: field.key, value });
+              });
+
+              const otherCount = detailFields.length;
               return (
                 <>
                   <tr key={record.id} className="rounded-2xl bg-white/5 backdrop-blur transition hover:bg-white/10">
@@ -174,8 +178,8 @@ const GrantTable = ({ records, loading }: GrantTableProps) => {
                         >
                           <h3 className="text-xs font-semibold uppercase tracking-wider text-white/50">Additional context</h3>
                           <dl className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                            {record.otherFields.map((field) => (
-                              <div key={field.key} className="rounded-xl border border-white/5 bg-white/5 p-3">
+                            {detailFields.map((field, index) => (
+                              <div key={`${field.key}-${index}`} className="rounded-xl border border-white/5 bg-white/5 p-3">
                                 <dt className="text-xs font-semibold uppercase tracking-wide text-white/40">
                                   {field.key}
                                 </dt>

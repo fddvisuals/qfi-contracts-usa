@@ -5,6 +5,7 @@ import YearlyFundingChart from './components/charts/YearlyFundingChart';
 import FundingBySourceChart from './components/charts/FundingBySourceChart';
 import PurposeLeaderboard from './components/PurposeLeaderboard';
 import GrantTable from './components/GrantTable';
+import GrantsMap from './components/charts/GrantsMap';
 import { computeAggregations, computeMetrics, useGrantData } from './hooks/useGrantData';
 
 const App = () => {
@@ -73,6 +74,7 @@ const App = () => {
   const filteredMetrics = useMemo(() => computeMetrics(filteredRecords), [filteredRecords]);
   const filteredAggregations = useMemo(() => computeAggregations(filteredRecords), [filteredRecords]);
 
+  const activeRecords = hasFilters ? filteredRecords : records;
   const activeMetrics = hasFilters ? filteredMetrics : metrics;
   const activeAggregations = hasFilters ? filteredAggregations : aggregations;
 
@@ -91,13 +93,13 @@ const App = () => {
         <div className="mx-auto max-w-7xl px-6 py-10 lg:px-8 lg:py-12">
           <header className="flex flex-col gap-6">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-wide text-brand-200">QFI Intelligence Hub</p>
+              <p className="text-sm font-semibold uppercase tracking-wide text-brand-200">FDD Visuals</p>
               <h1 className="mt-2 text-3xl font-bold tracking-tight text-white sm:text-4xl">
-                Grants portfolio insight dashboard
+                Qatar Foundation Grants in US education
               </h1>
               <p className="mt-4 max-w-3xl text-base text-white/70">
-                Explore grant performance by program, geography, and purpose. Layer filters to understand where funding is
-                concentrated, how requests convert to awards, and the stories behind each grant record.
+                Explore grant performance by program, geography, and purpose. Understand the reach, where funding is
+                concentrated, and the stories behind each grant record.
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-3 text-xs uppercase tracking-widest text-white/40">
@@ -145,14 +147,17 @@ const App = () => {
 
             {activeAggregations && (
               <div className="grid gap-6 lg:grid-cols-3">
-                <div className="lg:col-span-2">
-                  <YearlyFundingChart data={activeAggregations.amountByYear} />
+                <div className="lg:col-span-3">
+                  <GrantsMap records={activeRecords} />
                 </div>
                 <div className="lg:col-span-3">
                   <PurposeLeaderboard
                     purposes={activeAggregations.topPurposes}
                     schools={activeAggregations.topSchools}
                   />
+                </div>
+                <div className="lg:col-span-3">
+                  <YearlyFundingChart data={activeAggregations.amountByYear} />
                 </div>
                 <div className="lg:col-span-3">
                   <FundingBySourceChart data={activeAggregations.amountBySource} />

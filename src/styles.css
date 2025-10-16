@@ -1,3 +1,5 @@
+@import 'mapbox-gl/dist/mapbox-gl.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -13,4 +15,25 @@ body {
 
 #root {
   @apply min-h-screen;
+}
+
+.mapboxgl-popup-content {
+  background-color: rgba(2, 6, 23, 0.92);
+  color: #f8fafc;
+  border-radius: 1rem;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  box-shadow: 0 30px 60px rgba(15, 23, 42, 0.55);
+  padding: 1.25rem;
+  backdrop-filter: blur(12px);
+}
+
+.mapboxgl-popup-content p,
+.mapboxgl-popup-content li {
+  color: inherit;
+}
+
+.mapboxgl-popup-anchor-top .mapboxgl-popup-tip,
+.mapboxgl-popup-anchor-top-left .mapboxgl-popup-tip,
+.mapboxgl-popup-anchor-top-right .mapboxgl-popup-tip {
+  border-bottom-color: rgba(2, 6, 23, 0.92);
 }
